@@ -9,13 +9,13 @@ output "aci_name" {
 }
 
 output "aci_network_profile_interface" {
-  value        = azurerm_network_profile.net_prof.container_network_interface
-  descriptions = "The interface block"
+  value       = azurerm_network_profile.net_prof.container_network_interface
+  description = "The interface block"
 }
 
 output "aci_network_profile_interface_ids" {
-  value        = azurerm_network_profile.net_prof.container_network_interface_ids
-  descriptions = "The interface Ids"
+  value       = azurerm_network_profile.net_prof.container_network_interface_ids
+  description = "The interface Ids"
 }
 
 output "aci_principal_id" {

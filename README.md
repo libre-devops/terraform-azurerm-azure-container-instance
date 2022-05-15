@@ -35,8 +35,7 @@ module "aci" {
 }
 
 ```
-
-### Requirements
+## Requirements
 
 No requirements.
 
@@ -81,6 +80,6 @@ No modules.
 |------|-------------|
 | <a name="output_aci_id"></a> [aci\_id](#output\_aci\_id) | The id of the container instance |
 | <a name="output_aci_name"></a> [aci\_name](#output\_aci\_name) | The name of the Azure container instance |
-| <a name="output_aci_network_profile_interface"></a> [aci\_network\_profile\_interface](#output\_aci\_network\_profile\_interface) | n/a |
-| <a name="output_aci_network_profile_interface_ids"></a> [aci\_network\_profile\_interface\_ids](#output\_aci\_network\_profile\_interface\_ids) | n/a |
+| <a name="output_aci_network_profile_interface"></a> [aci\_network\_profile\_interface](#output\_aci\_network\_profile\_interface) | The interface block |
+| <a name="output_aci_network_profile_interface_ids"></a> [aci\_network\_profile\_interface\_ids](#output\_aci\_network\_profile\_interface\_ids) | The interface Ids |
 | <a name="output_aci_principal_id"></a> [aci\_principal\_id](#output\_aci\_principal\_id) | Client ID of system assigned managed identity if created |
