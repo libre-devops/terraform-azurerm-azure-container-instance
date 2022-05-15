@@ -25,15 +25,6 @@ resource "azurerm_container_group" "aci" {
     }
   }
 
-  dynamic "exposed_port" {
-    for_each = lookup(var.settings, "exposed_port", {}) != {} ? [1] : []
-
-    content {
-      username = lookup(var.settings.exposed_port, "port", null)
-      protocol = lookup(var.settings.exposed_port, "protocol", null)
-    }
-  }
-
   dynamic "image_registry_credential" {
     for_each = lookup(var.settings, "image_registry_credential", {}) != {} ? [1] : []
 
@@ -187,10 +178,7 @@ resource "azurerm_container_group" "aci" {
     content {
       name = init_container.key
 
-      image  = init_container.value.image
-      cpu    = init_container.value.cpu
-      memory = init_container.value.memory
-
+      image                        = init_container.value.image
       environment_variables        = lookup(init_container.value, "environment_variables", null)
       secure_environment_variables = lookup(init_container.value, "secure_environment_variables", null)
       commands                     = lookup(init_container.value, "commands", null)
