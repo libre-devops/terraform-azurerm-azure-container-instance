@@ -1,41 +1,3 @@
-```hcl
-module "acr" {
-  source = "registry.terraform.io/libre-devops/azure-container-registry/azurerm"
-
-  rg_name  = module.rg.rg_name
-  location = module.rg.rg_location
-  tags     = module.rg.rg_tags
-
-  acr_name      = "acr${var.short}${var.loc}${terraform.workspace}01"
-  sku           = "Standard"
-  identity_type = "SystemAssigned"
-  admin_enabled = true
-}
-
-module "aci" {
-  source = "registry.terraform.io/libre-devops/azure-container-instance/azurerm"
-
-  rg_name  = module.rg.rg_name
-  location = module.rg.rg_location
-  tags     = module.rg.rg_tags
-
-  container_instance_name  = "aci${var.short}${var.loc}${terraform.workspace}01"
-  os_type                  = "Linux"
-  vnet_integration_enabled = false
-  identity_type            = "SystemAssigned"
-
-  settings = {
-    container = {
-      name   = "ubuntu-test"
-      image  = "docker.io/ubuntu:latest"
-      cpu    = "2"
-      memory = "2"
-    }
-  }
-}
-
-```
-
 ## Requirements
 
 No requirements.
@@ -84,3 +46,4 @@ No modules.
 | <a name="output_aci_name"></a> [aci\_name](#output\_aci\_name) | The name of the Azure container instance |
 | <a name="output_aci_network_profile_interface"></a> [aci\_network\_profile\_interface](#output\_aci\_network\_profile\_interface) | The interface block |
 | <a name="output_aci_network_profile_interface_ids"></a> [aci\_network\_profile\_interface\_ids](#output\_aci\_network\_profile\_interface\_ids) | The interface Ids |
+| <a name="output_aci_principal_id"></a> [aci\_principal\_id](#output\_aci\_principal\_id) | Client ID of system assigned managed identity if created |

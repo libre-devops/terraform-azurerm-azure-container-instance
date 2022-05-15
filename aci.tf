@@ -1,28 +1,3 @@
-resource "azurerm_network_profile" "net_prof" {
-  count               = var.vnet_integration_enabled && var.os_type == "Linux" ? 1 : 0
-  location            = var.location
-  name                = var.network_profile_name
-  resource_group_name = var.rg_name
-  tags                = var.tags
-
-  dynamic "container_network_interface" {
-    for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings, "container_network_interface", {}) != {} ? [1] : []
-
-    content {
-      name = lookup(var.settings.container_network_interface, "username", null)
-
-      dynamic "ip_configuration" {
-        for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings.container_network_interface, "ip_configuration", {}) != {} ? [1] : []
-
-        content {
-          name      = lookup(var.settings.container_network_interface.ip_configuration, "name", null)
-          subnet_id = lookup(var.settings.container_network_interface.ip_configuration, "subnet_id", null)
-        }
-      }
-    }
-  }
-}
-
 resource "azurerm_container_group" "aci" {
   name                = var.container_instance_name
   location            = var.location
@@ -30,7 +5,7 @@ resource "azurerm_container_group" "aci" {
   tags                = var.tags
   ip_address_type     = var.vnet_integration_enabled && var.os_type == "Linux" ? var.ip_address_type : null
   network_profile_id  = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof[0].id : null
-  dns_name_label      = var.vnet_integration_enabled && var.os_type == "Linux" ? null : coalesce(var.dns_name_label, var.aci_name)
+  dns_name_label      = var.vnet_integration_enabled && var.os_type == "Linux" ? null : coalesce(var.dns_name_label, var.container_instance_name)
   os_type             = title(var.os_type)
   restart_policy      = var.restart_policy
   key_vault_key_id    = try(var.key_vault_key_id, null)

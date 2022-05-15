@@ -3,6 +3,12 @@ variable "container_instance_name" {
   description = "The name of the container instance"
 }
 
+variable "dns_name_label" {
+  type        = string
+  description = "The name of a DNS label if used"
+  default     = null
+}
+
 variable "identity_ids" {
   description = "Specifies a list of user managed identity ids to be assigned to the VM."
   type        = list(string)
