@@ -4,7 +4,7 @@ resource "azurerm_container_group" "aci" {
   resource_group_name = var.rg_name
   tags                = var.tags
   ip_address_type     = var.vnet_integration_enabled && var.os_type == "Linux" ? var.ip_address_type : null
-  network_profile_id  = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof[0].id : null
+  network_profile_id  = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof[count.index].id : null
   dns_name_label      = var.vnet_integration_enabled && var.os_type == "Linux" ? null : coalesce(var.dns_name_label, var.container_instance_name)
   os_type             = title(var.os_type)
   restart_policy      = var.restart_policy
@@ -73,13 +73,13 @@ resource "azurerm_container_group" "aci" {
     for_each = lookup(var.settings, "container", {}) != {} ? [1] : []
 
     content {
-      name                         = container.value.name
-      image                        = container.value.image
-      cpu                          = container.value.cpu
-      memory                       = container.value.memory
-      environment_variables        = try(container.value.environment_variables, null)
-      secure_environment_variables = try(container.value.secure_environment_variables, null)
-      commands                     = try(container.value.commands, null)
+      name                         = lookup(var.settings.diagnostics.container, "name", null)
+      image                        = lookup(var.settings.diagnostics.image, "image", null)
+      cpu                          = lookup(var.settings.diagnostics.image, "cpu", null)
+      memory                       = lookup(var.settings.diagnostics.image, "memory", null)
+      environment_variables        = lookup(var.settings.diagnostics.image, "environment_variables", null)
+      secure_environment_variables = lookup(var.settings.diagnostics.image, "secure_environment_variables", null)
+      commands                     = lookup(var.settings.diagnostics.image, "commands", null)
 
       dynamic "gpu" {
         for_each = try(container.value.gpu, null) == null ? [] : [1]
