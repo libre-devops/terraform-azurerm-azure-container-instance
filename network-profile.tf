@@ -1,5 +1,5 @@
 resource "azurerm_network_profile" "net_prof" {
-  count               = var.vnet_integration_enabled && var.os_type == "Linux" ? [1] : []
+  count               = var.vnet_integration_enabled && var.os_type == "Linux" ? 1 : 0
   location            = var.location
   name                = var.network_profile_name
   resource_group_name = var.rg_name
