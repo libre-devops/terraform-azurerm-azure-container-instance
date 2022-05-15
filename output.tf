@@ -9,12 +9,12 @@ output "aci_name" {
 }
 
 output "aci_network_profile_interface" {
-  value       = azurerm_network_profile.net_prof.0.container_network_interface
+  value       = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.container_network_interface : null
   description = "The interface block"
 }
 
 output "aci_network_profile_interface_ids" {
-  value       = azurerm_network_profile.net_prof.0.container_network_interface_ids
+  value       = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.container_network_interface_ids : null
   description = "The interface Ids"
 }
 

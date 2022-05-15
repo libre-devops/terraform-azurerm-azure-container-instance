@@ -51,8 +51,8 @@ variable "os_type" {
 
 variable "restart_policy" {
   type        = string
-  description = "The restart policy of the container, defaults to always"
-  default     = "always"
+  description = "The restart policy of the container, defaults to Always"
+  default     = "Always"
 }
 
 variable "rg_name" {

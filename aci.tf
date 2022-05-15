@@ -7,7 +7,7 @@ resource "azurerm_container_group" "aci" {
   network_profile_id  = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.id : null
   dns_name_label      = var.vnet_integration_enabled && var.os_type == "Linux" ? null : coalesce(var.dns_name_label, var.container_instance_name)
   os_type             = title(var.os_type)
-  restart_policy      = var.restart_policy
+  restart_policy      = title(var.restart_policy)
   key_vault_key_id    = try(var.key_vault_key_id, null)
 
   dynamic "identity" {
