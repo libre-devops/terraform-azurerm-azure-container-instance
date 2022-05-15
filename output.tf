@@ -1,32 +1,24 @@
-output "sa_id" {
-  value       = azurerm_storage_account.sa.id
-  description = "The ID of the storage account"
+output "aci_id" {
+  value       = azurerm_container_group.aci.id
+  description = "The id of the container instance"
 }
 
-output "sa_name" {
-  value       = azurerm_storage_account.sa.name
-  description = "The name of the storage account"
+output "aci_name" {
+  value       = azurerm_container_group.aci.name
+  description = "The name of the Azure container instance"
 }
 
-output "sa_primary_access_key" {
-  value       = azurerm_storage_account.sa.primary_access_key
-  description = "The primary access key of the storage account"
-  sensitive   = true
+output "aci_network_profile_interface" {
+  value        = azurerm_network_profile.net_prof.container_network_interface
+  descriptions = "The interface block"
 }
 
-output "sa_primary_blob_endpoint" {
-  value       = azurerm_storage_account.sa.primary_blob_endpoint
-  description = "The primary blob endpoint of the storage account"
+output "aci_network_profile_interface_ids" {
+  value        = azurerm_network_profile.net_prof.container_network_interface_ids
+  descriptions = "The interface Ids"
 }
 
-output "sa_primary_connection_string" {
-  value       = azurerm_storage_account.sa.primary_blob_connection_string
-  description = "The primary blob connection string of the storage account"
-  sensitive   = true
-}
-
-output "sa_secondary_access_key" {
-  value       = azurerm_storage_account.sa.secondary_access_key
-  description = "The secondary access key of the storage account"
-  sensitive   = true
+output "aci_principal_id" {
+  value       = azurerm_container_group.aci.identity[0].principal_id
+  description = "Client ID of system assigned managed identity if created"
 }

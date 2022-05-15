@@ -1,20 +1,39 @@
-resource "azurerm_container_group" "aci" {
-  name = var.container_instance_name
+resource "azurerm_network_profile" "net_prof" {
+  count               = var.vnet_integration_enabled && var.os_type == "Linux" ? 1 : 0
+  location            = var.location
+  name                = var.network_profile_name
+  resource_group_name = var.rg_name
+  tags                = var.tags
 
+  dynamic "container_network_interface" {
+    for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings, "container_network_interface", {}) != {} ? [1] : []
+
+    content {
+      name = lookup(var.settings.container_network_interface, "username", null)
+
+      dynamic "ip_configuration" {
+        for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings.container_network_interface, "ip_configuration", {}) != {} ? [1] : []
+
+        content {
+          name      = lookup(var.settings.container_network_interface.ip_configuration, "name", null)
+          subnet_id = lookup(var.settings.container_network_interface.ip_configuration, "subnet_id", null)
+        }
+      }
+    }
+  }
+}
+
+resource "azurerm_container_group" "aci" {
+  name                = var.container_instance_name
   location            = var.location
   resource_group_name = var.rg_name
-
-  ## review this
-  ip_address_type    = var.vnet_integration_enabled || var.os_type == "Windows" ? var.ip_address_type : null
-  network_profile_id = var.vnet_integration_enabled || var.os_type == "Windows" ? azurerm_network_profile.network_profile["enabled"].id : null
-  dns_name_label     = var.vnet_integration_enabled || var.os_type == "Windows" ? null : coalesce(var.dns_name_label, var.aci_name)
-
-  os_type = title(var.os_type)
-
-  restart_policy = var.restart_policy
-
-  key_vault_key_id = var.key_vault_key_id
-
+  tags                = var.tags
+  ip_address_type     = var.vnet_integration_enabled && var.os_type == "Linux" ? var.ip_address_type : null
+  network_profile_id  = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.network_profile[0].id : null
+  dns_name_label      = var.vnet_integration_enabled && var.os_type == "Linux" ? null : coalesce(var.dns_name_label, var.aci_name)
+  os_type             = title(var.os_type)
+  restart_policy      = var.restart_policy
+  key_vault_key_id    = try(var.key_vault_key_id, null)
 
   dynamic "identity" {
     for_each = length(var.identity_ids) == 0 && var.identity_type == "SystemAssigned" ? [var.identity_type] : []
@@ -156,9 +175,9 @@ resource "azurerm_container_group" "aci" {
               port   = try(http_get.value.port, null)
               scheme = try(http_get.value.scheme, null)
             }
-          } //http_get
+          }
         }
-      } //liveness_probe
+      }
 
       dynamic "volume" {
         for_each = try(container.value.volume, null) == null ? [] : [1]
@@ -187,31 +206,34 @@ resource "azurerm_container_group" "aci" {
     }
   }
 
-
   dynamic "init_container" {
-    for_each = var.containers_config
+    for_each = lookup(var.settings, "init_container", {}) != {} ? [1] : []
 
     content {
-      name = container.key
+      name = init_container.key
 
-      image  = container.value.image
-      cpu    = container.value.cpu
-      memory = container.value.memory
+      image  = init_container.value.image
+      cpu    = init_container.value.cpu
+      memory = init_container.value.memory
 
-      environment_variables        = lookup(container.value, "environment_variables", null)
-      secure_environment_variables = lookup(container.value, "secure_environment_variables", null)
-      commands                     = lookup(container.value, "commands", null)
+      environment_variables        = lookup(init_container.value, "environment_variables", null)
+      secure_environment_variables = lookup(init_container.value, "secure_environment_variables", null)
+      commands                     = lookup(init_container.value, "commands", null)
 
-      dynamic "ports" {
-        for_each = container.value.ports
+      dynamic "volume" {
+        for_each = try(init_container.value.volume, null) == null ? [] : [1]
 
         content {
-          port     = ports.value.port
-          protocol = ports.value.protocol
+          name                 = volume.value.name
+          mount_path           = volume.value.mount_path
+          read_only            = try(volume.value.read_only, false)
+          empty_dir            = try(volume.value.empty_dir, false)
+          storage_account_name = try(volume.value.storage_account_name, null)
+          storage_account_key  = try(volume.value.storage_account_key, null)
+          share_name           = try(volume.value.share_name, null)
+          secret               = try(volume.share.secret, null)
         }
       }
     }
   }
-
-  tags = var.tags
 }

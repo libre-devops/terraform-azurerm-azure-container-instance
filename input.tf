@@ -1,3 +1,8 @@
+variable "container_instance_name" {
+  type        = string
+  description = "The name of the container instance"
+}
+
 variable "identity_ids" {
   description = "Specifies a list of user managed identity ids to be assigned to the VM."
   type        = list(string)
@@ -10,9 +15,38 @@ variable "identity_type" {
   default     = ""
 }
 
+variable "ip_address_type" {
+  type        = string
+  description = "What the ip address type is if used"
+  default     = null
+}
+
+variable "key_vault_key_id" {
+  type        = string
+  description = "If a CMK is used, the key ID used to encrypt the instances"
+  default     = null
+}
+
 variable "location" {
   description = "The location for this resource to be put in"
   type        = string
+}
+
+variable "network_profile_name" {
+  type        = string
+  description = "If a private network is used, the name of that network profile."
+  default     = null
+}
+
+variable "os_type" {
+  type        = string
+  description = "The OS type for the container instance"
+}
+
+variable "restart_policy" {
+  type        = string
+  description = "The restart policy of the container, defaults to always"
+  default     = "always"
 }
 
 variable "rg_name" {
@@ -37,4 +71,10 @@ variable "tags" {
   default = {
     source = "terraform"
   }
+}
+
+variable "vnet_integration_enabled" {
+  type        = bool
+  description = "If vnet integration is enabled. can only be activated on a Linux container"
+  default     = null
 }
