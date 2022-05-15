@@ -10,6 +10,8 @@ module "acr" {
   sku           = "Standard"
   identity_type = "SystemAssigned"
   admin_enabled = true
+  
+  settings = {}
 }
 
 module "aci" {
