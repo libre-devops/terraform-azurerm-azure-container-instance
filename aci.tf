@@ -111,7 +111,7 @@ resource "azurerm_container_group" "aci" {
       image                        = container.value.image
       cpu                          = container.value.cpu
       memory                       = container.value.memory
-      environment_variables        = merge(try(container.value.environment_variables, null))
+      environment_variables        = try(container.value.environment_variables, null)
       secure_environment_variables = try(container.value.secure_environment_variables, null)
       commands                     = try(container.value.commands, null)
 
