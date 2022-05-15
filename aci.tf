@@ -73,13 +73,13 @@ resource "azurerm_container_group" "aci" {
     for_each = lookup(var.settings, "container", {}) != {} ? [1] : []
 
     content {
-      name                         = lookup(var.settings.diagnostics.container, "name", null)
-      image                        = lookup(var.settings.diagnostics.image, "image", null)
-      cpu                          = lookup(var.settings.diagnostics.image, "cpu", null)
-      memory                       = lookup(var.settings.diagnostics.image, "memory", null)
-      environment_variables        = lookup(var.settings.diagnostics.image, "environment_variables", null)
-      secure_environment_variables = lookup(var.settings.diagnostics.image, "secure_environment_variables", null)
-      commands                     = lookup(var.settings.diagnostics.image, "commands", null)
+      name                         = lookup(var.settings.container, "name", null)
+      image                        = lookup(var.settings.container, "image", null)
+      cpu                          = lookup(var.settings.container, "cpu", null)
+      memory                       = lookup(var.settings.container, "memory", null)
+      environment_variables        = lookup(var.settings.container, "environment_variables", null)
+      secure_environment_variables = lookup(var.settings.container, "secure_environment_variables", null)
+      commands                     = lookup(var.settings.container, "commands", null)
 
       dynamic "gpu" {
         for_each = try(container.value.gpu, null) == null ? [] : [1]
