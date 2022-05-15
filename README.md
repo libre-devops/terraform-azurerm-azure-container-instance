@@ -10,7 +10,7 @@ module "acr" {
   sku           = "Standard"
   identity_type = "SystemAssigned"
   admin_enabled = true
-  
+
   settings = {}
 }
 
@@ -32,6 +32,12 @@ module "aci" {
       image  = "docker.io/ubuntu:latest"
       cpu    = "2"
       memory = "2"
+
+      // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
+      ports = {
+        port     = "443"
+        protocol = "TCP"
+      }
     }
   }
 }
