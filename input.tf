@@ -24,6 +24,12 @@ variable "rg_name" {
   }
 }
 
+variable "settings" {
+  description = "Specifies the Authentication enabled or not"
+  default     = false
+  type        = any
+}
+
 variable "tags" {
   type        = map(string)
   description = "A map of the tags to use on the resources that are deployed with this module."
@@ -32,10 +38,3 @@ variable "tags" {
     source = "terraform"
   }
 }
-
-variable "settings" {
-  description = "Specifies the Authentication enabled or not"
-  default     = false
-  type        = any
-}
-
