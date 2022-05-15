@@ -32,3 +32,10 @@ variable "tags" {
     source = "terraform"
   }
 }
+
+variable "settings" {
+  description = "Specifies the Authentication enabled or not"
+  default     = false
+  type        = any
+}
+
