@@ -1,17 +1,47 @@
 ```hcl
-module "plan" {
-  source = "registry.terraform.io/libre-devops/service-plan/azurerm"
+module "acr" {
+  source = "registry.terraform.io/libre-devops/azure-container-registry/azurerm"
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
   tags     = module.rg.rg_tags
-  
-  app_service_plan_name          = "plan-${var.short}-${var.loc}-${terraform.workspace}-01"
-  add_to_app_service_environment = false
-  
-  os_type  = "Linux"
-  sku_name = "Y1"
+
+  acr_name      = "acr${var.short}${var.loc}${terraform.workspace}01"
+  sku           = "Standard"
+  identity_type = "SystemAssigned"
+  admin_enabled = true
+
+  settings = {}
 }
+
+module "aci" {
+  source = "registry.terraform.io/libre-devops/azure-container-instance/azurerm"
+
+  rg_name  = module.rg.rg_name
+  location = module.rg.rg_location
+  tags     = module.rg.rg_tags
+
+  container_instance_name  = "aci${var.short}${var.loc}${terraform.workspace}01"
+  os_type                  = "Linux"
+  vnet_integration_enabled = false
+  identity_type            = "SystemAssigned"
+
+  settings = {
+    container = {
+      name   = "ubuntu-test"
+      image  = "docker.io/ubuntu:latest"
+      cpu    = "2"
+      memory = "2"
+
+      // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
+      ports = {
+        port     = "443"
+        protocol = "TCP"
+      }
+    }
+  }
+}
+
 ```
 
 ## Requirements
@@ -32,30 +62,33 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [azurerm_service_plan.plan](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) | resource |
+| [azurerm_container_group.aci](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_group) | resource |
+| [azurerm_network_profile.net_prof](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_profile) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_add_to_app_service_environment"></a> [add\_to\_app\_service\_environment](#input\_add\_to\_app\_service\_environment) | Whether or not this app service plan should be added to an app service environment | `bool` | `false` | no |
-| <a name="input_app_service_environment_id"></a> [app\_service\_environment\_id](#input\_app\_service\_environment\_id) | If an ASE is used, supply the ID to it here | `string` | `""` | no |
-| <a name="input_app_service_plan_name"></a> [app\_service\_plan\_name](#input\_app\_service\_plan\_name) | The name for the App service plan | `string` | n/a | yes |
-| <a name="input_location"></a> [location](#input\_location) | Azure location. | `string` | n/a | yes |
-| <a name="input_maximum_elastic_worker_count"></a> [maximum\_elastic\_worker\_count](#input\_maximum\_elastic\_worker\_count) | If ElasticScaleEnabled app service plan is used, the max number of nodes | `number` | `null` | no |
-| <a name="input_os_type"></a> [os\_type](#input\_os\_type) | The OS type of the app service plan | `string` | n/a | yes |
-| <a name="input_per_site_scaling"></a> [per\_site\_scaling](#input\_per\_site\_scaling) | Should per site scaling be used? | `bool` | `false` | no |
-| <a name="input_rg_name"></a> [rg\_name](#input\_rg\_name) | Resource group name | `string` | n/a | yes |
-| <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name) | A new SKU name | `map(string)` | n/a | yes |
+| <a name="input_container_instance_name"></a> [container\_instance\_name](#input\_container\_instance\_name) | The name of the container instance | `string` | n/a | yes |
+| <a name="input_dns_name_label"></a> [dns\_name\_label](#input\_dns\_name\_label) | The name of a DNS label if used | `string` | `null` | no |
+| <a name="input_identity_ids"></a> [identity\_ids](#input\_identity\_ids) | Specifies a list of user managed identity ids to be assigned to the VM. | `list(string)` | `[]` | no |
+| <a name="input_identity_type"></a> [identity\_type](#input\_identity\_type) | The Managed Service Identity Type of this Virtual Machine. | `string` | `""` | no |
+| <a name="input_ip_address_type"></a> [ip\_address\_type](#input\_ip\_address\_type) | What the ip address type is if used | `string` | `null` | no |
+| <a name="input_key_vault_key_id"></a> [key\_vault\_key\_id](#input\_key\_vault\_key\_id) | If a CMK is used, the key ID used to encrypt the instances | `string` | `null` | no |
+| <a name="input_location"></a> [location](#input\_location) | The location for this resource to be put in | `string` | n/a | yes |
+| <a name="input_network_profile_name"></a> [network\_profile\_name](#input\_network\_profile\_name) | If a private network is used, the name of that network profile. | `string` | `null` | no |
+| <a name="input_os_type"></a> [os\_type](#input\_os\_type) | The OS type for the container instance | `string` | n/a | yes |
+| <a name="input_restart_policy"></a> [restart\_policy](#input\_restart\_policy) | The restart policy of the container, defaults to always | `string` | `"always"` | no |
+| <a name="input_rg_name"></a> [rg\_name](#input\_rg\_name) | The name of the resource group, this module does not create a resource group, it is expecting the value of a resource group already exists | `string` | n/a | yes |
+| <a name="input_settings"></a> [settings](#input\_settings) | Specifies the Authentication enabled or not | `any` | `false` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | A map of the tags to use on the resources that are deployed with this module. | `map(string)` | <pre>{<br>  "source": "terraform"<br>}</pre> | no |
-| <a name="input_zone_balancing_enabled"></a> [zone\_balancing\_enabled](#input\_zone\_balancing\_enabled) | Should the ASP be zone redundant? | `bool` | `false` | no |
+| <a name="input_vnet_integration_enabled"></a> [vnet\_integration\_enabled](#input\_vnet\_integration\_enabled) | If vnet integration is enabled. can only be activated on a Linux container | `bool` | `null` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_service_plan_id"></a> [service\_plan\_id](#output\_service\_plan\_id) | Id of the created App Service Plan |
-| <a name="output_service_plan_is_reserved"></a> [service\_plan\_is\_reserved](#output\_service\_plan\_is\_reserved) | If the instance is reserved |
-| <a name="output_service_plan_kind"></a> [service\_plan\_kind](#output\_service\_plan\_kind) | The kind of the plan |
-| <a name="output_service_plan_location"></a> [service\_plan\_location](#output\_service\_plan\_location) | Azure location of the created App Service Plan |
-| <a name="output_service_plan_name"></a> [service\_plan\_name](#output\_service\_plan\_name) | Name of the created App Service Plan |
+| <a name="output_aci_id"></a> [aci\_id](#output\_aci\_id) | The id of the container instance |
+| <a name="output_aci_name"></a> [aci\_name](#output\_aci\_name) | The name of the Azure container instance |
+| <a name="output_aci_network_profile_interface"></a> [aci\_network\_profile\_interface](#output\_aci\_network\_profile\_interface) | The interface block |
+| <a name="output_aci_network_profile_interface_ids"></a> [aci\_network\_profile\_interface\_ids](#output\_aci\_network\_profile\_interface\_ids) | The interface Ids |
