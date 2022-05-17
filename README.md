@@ -1,17 +1,12 @@
 ```hcl
-module "acr" {
-  source = "registry.terraform.io/libre-devops/azure-container-registry/azurerm"
+module "rg" {
+  source = "registry.terraform.io/libre-devops/rg/azurerm"
 
-  rg_name  = module.rg.rg_name
-  location = module.rg.rg_location
-  tags     = module.rg.rg_tags
+  rg_name  = "rg-${var.short}-${var.loc}-${terraform.workspace}-build" // rg-ldo-euw-dev-build
+  location = local.location                                            // compares var.loc with the var.regions var to match a long-hand name, in this case, "euw", so "westeurope"
+  tags     = local.tags
 
-  acr_name      = "acr${var.short}${var.loc}${terraform.workspace}01"
-  sku           = "Standard"
-  identity_type = "SystemAssigned"
-  admin_enabled = true
-
-  settings = {}
+  #  lock_level = "CanNotDelete" // Do not set this value to skip lock
 }
 
 module "aci" {
