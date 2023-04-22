@@ -26,6 +26,14 @@ resource "azurerm_container_group" "aci" {
     }
   }
 
+  dynamic "identity" {
+    for_each = length(var.identity_ids) > 0 || var.identity_type == "SystemAssigned, UserAssigned" ? [var.identity_type] : []
+    content {
+      type         = var.identity_type
+      identity_ids = length(var.identity_ids) > 0 ? var.identity_ids : []
+    }
+  }
+
   dynamic "image_registry_credential" {
     for_each = lookup(var.settings, "image_registry_credential", {}) != {} ? [1] : []
 
