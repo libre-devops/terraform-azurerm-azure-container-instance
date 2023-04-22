@@ -86,7 +86,7 @@ resource "azurerm_network_security_rule" "bastion_inbound" {
 
 
 module "aci" {
-  source = "../.."
+  source = "registry.terraform.io/libre-devops/azure-container-instance/azurerm"
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location

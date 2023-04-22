@@ -88,7 +88,7 @@ resource "azurerm_network_security_rule" "bastion_inbound" {
 
 
 module "aci" {
-  source = "../.."
+  source = "registry.terraform.io/libre-devops/azure-container-instance/azurerm"
 
   rg_name  = module.rg.rg_name
   location = module.rg.rg_location
@@ -132,7 +132,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_aci"></a> [aci](#module\_aci) | ../.. | n/a |
+| <a name="module_aci"></a> [aci](#module\_aci) | registry.terraform.io/libre-devops/azure-container-instance/azurerm | n/a |
 | <a name="module_network"></a> [network](#module\_network) | registry.terraform.io/libre-devops/network/azurerm | n/a |
 | <a name="module_nsg"></a> [nsg](#module\_nsg) | registry.terraform.io/libre-devops/nsg/azurerm | n/a |
 | <a name="module_rg"></a> [rg](#module\_rg) | registry.terraform.io/libre-devops/rg/azurerm | n/a |
