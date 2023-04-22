@@ -101,30 +101,31 @@ module "aci" {
 
 
   settings = {
-    container = {
-      name   = "alpine"
-      image  = "mcr.microsoft.com/oss/nginx/nginx:1.9.15-alpine"
-      cpu    = "2"
-      memory = "2"
+    containers = [
+      {
+        name   = "image1"
+        image  = "mcr.microsoft.com/oss/nginx/nginx:1.9.15-alpine"
+        cpu    = "2"
+        memory = "2"
 
-      // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
-      ports = {
-        port     = "443"
-        protocol = "TCP"
+        // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
+        ports = {
+          port     = "443"
+          protocol = "TCP"
+        }
+      },
+      {
+        name   = "image2"
+        image  = "mcr.microsoft.com/oss/nginx/nginx:1.9.15-alpine"
+        cpu    = "2"
+        memory = "2"
+
+        // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
+        ports = {
+          port     = "8443"
+          protocol = "TCP"
+        }
       }
-    }
-
-    container = {
-      name   = "alpine"
-      image  = "mcr.microsoft.com/oss/nginx/nginx:1.9.15-alpine"
-      cpu    = "2"
-      memory = "2"
-
-      // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
-      ports = {
-        port     = "443"
-        protocol = "TCP"
-      }
-    }
+    ]
   }
 }
