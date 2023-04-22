@@ -1,5 +1,5 @@
 resource "azurerm_network_profile" "net_prof" {
-  count               = var.vnet_integration_enabled && var.os_type == "Linux" ? 1 : 0
+  count               = var.vnet_integration_enabled && var.use_legacy_network_profile == true && var.os_type == "Linux" ? 1 : 0
   location            = var.location
   name                = var.network_profile_name
   resource_group_name = var.rg_name
@@ -9,7 +9,7 @@ resource "azurerm_network_profile" "net_prof" {
     for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings, "container_network_interface", {}) != {} ? [1] : []
 
     content {
-      name = lookup(var.settings.container_network_interface, "username", null)
+      name = lookup(var.settings.container_network_interface, "name", null)
 
       dynamic "ip_configuration" {
         for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings.container_network_interface, "ip_configuration", {}) != {} ? [1] : []

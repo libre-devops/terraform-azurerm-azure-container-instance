@@ -1,44 +1,3 @@
-```hcl
-module "rg" {
-  source = "registry.terraform.io/libre-devops/rg/azurerm"
-
-  rg_name  = "rg-${var.short}-${var.loc}-${terraform.workspace}-build" // rg-ldo-euw-dev-build
-  location = local.location                                            // compares var.loc with the var.regions var to match a long-hand name, in this case, "euw", so "westeurope"
-  tags     = local.tags
-
-  #  lock_level = "CanNotDelete" // Do not set this value to skip lock
-}
-
-module "aci" {
-  source = "registry.terraform.io/libre-devops/azure-container-instance/azurerm"
-
-  rg_name  = module.rg.rg_name
-  location = module.rg.rg_location
-  tags     = module.rg.rg_tags
-
-  container_instance_name  = "aci${var.short}${var.loc}${terraform.workspace}01"
-  os_type                  = "Linux"
-  vnet_integration_enabled = false
-  identity_type            = "SystemAssigned"
-
-  settings = {
-    container = {
-      name   = "ubuntu-test"
-      image  = "docker.io/ubuntu:latest"
-      cpu    = "2"
-      memory = "2"
-
-      // Ports cannot be empty in Azure.  For security, 443 with no HTTPS listener is probably the best security.
-      ports = {
-        port     = "443"
-        protocol = "TCP"
-      }
-    }
-  }
-}
-
-```
-
 ## Requirements
 
 No requirements.
@@ -73,10 +32,12 @@ No modules.
 | <a name="input_location"></a> [location](#input\_location) | The location for this resource to be put in | `string` | n/a | yes |
 | <a name="input_network_profile_name"></a> [network\_profile\_name](#input\_network\_profile\_name) | If a private network is used, the name of that network profile. | `string` | `null` | no |
 | <a name="input_os_type"></a> [os\_type](#input\_os\_type) | The OS type for the container instance | `string` | n/a | yes |
-| <a name="input_restart_policy"></a> [restart\_policy](#input\_restart\_policy) | The restart policy of the container, defaults to always | `string` | `"always"` | no |
+| <a name="input_restart_policy"></a> [restart\_policy](#input\_restart\_policy) | The restart policy of the container, defaults to Always | `string` | `"Always"` | no |
 | <a name="input_rg_name"></a> [rg\_name](#input\_rg\_name) | The name of the resource group, this module does not create a resource group, it is expecting the value of a resource group already exists | `string` | n/a | yes |
 | <a name="input_settings"></a> [settings](#input\_settings) | Specifies the Authentication enabled or not | `any` | `false` | no |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | The subnets the container instance is connected to | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | A map of the tags to use on the resources that are deployed with this module. | `map(string)` | <pre>{<br>  "source": "terraform"<br>}</pre> | no |
+| <a name="input_use_legacy_network_profile"></a> [use\_legacy\_network\_profile](#input\_use\_legacy\_network\_profile) | Whether or not to use legacy network profile | `bool` | `false` | no |
 | <a name="input_vnet_integration_enabled"></a> [vnet\_integration\_enabled](#input\_vnet\_integration\_enabled) | If vnet integration is enabled. can only be activated on a Linux container | `bool` | `null` | no |
 
 ## Outputs
@@ -87,3 +48,4 @@ No modules.
 | <a name="output_aci_name"></a> [aci\_name](#output\_aci\_name) | The name of the Azure container instance |
 | <a name="output_aci_network_profile_interface"></a> [aci\_network\_profile\_interface](#output\_aci\_network\_profile\_interface) | The interface block |
 | <a name="output_aci_network_profile_interface_ids"></a> [aci\_network\_profile\_interface\_ids](#output\_aci\_network\_profile\_interface\_ids) | The interface Ids |
+| <a name="output_aci_principal_id"></a> [aci\_principal\_id](#output\_aci\_principal\_id) | Client ID of system assigned managed identity if created |

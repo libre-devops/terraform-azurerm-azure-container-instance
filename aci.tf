@@ -4,7 +4,8 @@ resource "azurerm_container_group" "aci" {
   resource_group_name = var.rg_name
   tags                = var.tags
   ip_address_type     = var.vnet_integration_enabled && var.os_type == "Linux" ? var.ip_address_type : null
-  network_profile_id  = var.vnet_integration_enabled && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.id : null
+  subnet_ids          = try(var.subnet_ids, [], null)
+  network_profile_id  = var.vnet_integration_enabled && var.use_legacy_network_profile == true && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.id : null
   dns_name_label      = var.vnet_integration_enabled && var.os_type == "Linux" ? null : coalesce(var.dns_name_label, var.container_instance_name)
   os_type             = title(var.os_type)
   restart_policy      = title(var.restart_policy)

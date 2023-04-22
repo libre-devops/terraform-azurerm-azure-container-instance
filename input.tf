@@ -70,6 +70,12 @@ variable "settings" {
   type        = any
 }
 
+variable "subnet_ids" {
+  description = "The subnets the container instance is connected to"
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   type        = map(string)
   description = "A map of the tags to use on the resources that are deployed with this module."
@@ -77,6 +83,12 @@ variable "tags" {
   default = {
     source = "terraform"
   }
+}
+
+variable "use_legacy_network_profile" {
+  description = "Whether or not to use legacy network profile"
+  type        = bool
+  default     = false
 }
 
 variable "vnet_integration_enabled" {
