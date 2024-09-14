@@ -77,109 +77,109 @@ resource "azurerm_container_group" "aci" {
     }
   }
 
-# Create containers based on for_each
-dynamic "container" {
-  for_each = lookup(var.settings, "containers", []) != [] ? var.settings.containers : []
+  # Create containers based on for_each
+  dynamic "container" {
+    for_each = lookup(var.settings, "containers", []) != [] ? var.settings.containers : []
 
-  content {
-    name                         = container.value.name
-    image                        = container.value.image
-    cpu                          = container.value.cpu
-    memory                       = container.value.memory
-    environment_variables        = lookup(container.value, "environment_variables", null)
-    secure_environment_variables = lookup(container.value, "secure_environment_variables", null)
-    commands                     = lookup(container.value, "commands", null)
+    content {
+      name                         = container.value.name
+      image                        = container.value.image
+      cpu                          = container.value.cpu
+      memory                       = container.value.memory
+      environment_variables        = lookup(container.value, "environment_variables", null)
+      secure_environment_variables = lookup(container.value, "secure_environment_variables", null)
+      commands                     = lookup(container.value, "commands", null)
 
-    dynamic "gpu" {
-      for_each = lookup(container.value, "gpu", []) != [] ? [container.value.gpu] : []
+      dynamic "gpu" {
+        for_each = lookup(container.value, "gpu", []) != [] ? [container.value.gpu] : []
 
-      content {
-        count = gpu.value.count
-        sku   = gpu.value.sku
+        content {
+          count = gpu.value.count
+          sku   = gpu.value.sku
+        }
       }
-    }
 
-    dynamic "ports" {
-      for_each = lookup(container.value, "ports", []) != [] ? [container.value.ports] : []
+      dynamic "ports" {
+        for_each = lookup(container.value, "ports", []) != [] ? [container.value.ports] : []
 
-      content {
-        port     = ports.value.port
-        protocol = upper(ports.value.protocol)
+        content {
+          port     = ports.value.port
+          protocol = upper(ports.value.protocol)
+        }
       }
-    }
 
-    dynamic "readiness_probe" {
-      for_each = lookup(container.value, "readiness_probe", []) != [] ? [container.value.readiness_probe] : []
+      dynamic "readiness_probe" {
+        for_each = lookup(container.value, "readiness_probe", []) != [] ? [container.value.readiness_probe] : []
 
-      content {
-        exec                  = lookup(readiness_probe.value, "exec", null)
-        initial_delay_seconds = lookup(readiness_probe.value, "initial_delay_seconds", null)
-        period_seconds        = lookup(readiness_probe.value, "period_seconds", null)
-        failure_threshold     = lookup(readiness_probe.value, "failure_threshold", null)
-        success_threshold     = lookup(readiness_probe.value, "success_threshold", null)
-        timeout_seconds       = lookup(readiness_probe.value, "timeout_seconds", null)
+        content {
+          exec                  = lookup(readiness_probe.value, "exec", null)
+          initial_delay_seconds = lookup(readiness_probe.value, "initial_delay_seconds", null)
+          period_seconds        = lookup(readiness_probe.value, "period_seconds", null)
+          failure_threshold     = lookup(readiness_probe.value, "failure_threshold", null)
+          success_threshold     = lookup(readiness_probe.value, "success_threshold", null)
+          timeout_seconds       = lookup(readiness_probe.value, "timeout_seconds", null)
 
-        dynamic "http_get" {
-          for_each = lookup(readiness_probe.value, "http_get", {}) != {} ? [readiness_probe.value.http_get] : []
+          dynamic "http_get" {
+            for_each = lookup(readiness_probe.value, "http_get", {}) != {} ? [readiness_probe.value.http_get] : []
 
-          content {
-            path   = http_get.value.path
-            port   = http_get.value.port
-            scheme = http_get.value.scheme
+            content {
+              path   = http_get.value.path
+              port   = http_get.value.port
+              scheme = http_get.value.scheme
+            }
           }
         }
       }
-    }
 
-    dynamic "liveness_probe" {
-      for_each = lookup(container.value, "liveness_probe", {}) != {} ? [container.value.liveness_probe] : []
+      dynamic "liveness_probe" {
+        for_each = lookup(container.value, "liveness_probe", {}) != {} ? [container.value.liveness_probe] : []
 
-      content {
-        exec                  = lookup(liveness_probe.value, "exec", null)
-        initial_delay_seconds = lookup(liveness_probe.value, "initial_delay_seconds", null)
-        period_seconds        = lookup(liveness_probe.value, "period_seconds", null)
-        failure_threshold     = lookup(liveness_probe.value, "failure_threshold", null)
-        success_threshold     = lookup(liveness_probe.value, "success_threshold", null)
-        timeout_seconds       = lookup(liveness_probe.value, "timeout_seconds", null)
+        content {
+          exec                  = lookup(liveness_probe.value, "exec", null)
+          initial_delay_seconds = lookup(liveness_probe.value, "initial_delay_seconds", null)
+          period_seconds        = lookup(liveness_probe.value, "period_seconds", null)
+          failure_threshold     = lookup(liveness_probe.value, "failure_threshold", null)
+          success_threshold     = lookup(liveness_probe.value, "success_threshold", null)
+          timeout_seconds       = lookup(liveness_probe.value, "timeout_seconds", null)
 
-        dynamic "http_get" {
-          for_each = lookup(liveness_probe.value, "http_get", {}) != {} ? [liveness_probe.value.http_get] : []
+          dynamic "http_get" {
+            for_each = lookup(liveness_probe.value, "http_get", {}) != {} ? [liveness_probe.value.http_get] : []
 
-          content {
-            path   = http_get.value.path
-            port   = http_get.value.port
-            scheme = http_get.value.scheme
+            content {
+              path   = http_get.value.path
+              port   = http_get.value.port
+              scheme = http_get.value.scheme
+            }
           }
         }
       }
-    }
 
-    dynamic "volume" {
-      for_each = lookup(container.value, "volume", {}) != {} ? [container.value.volume] : []
+      dynamic "volume" {
+        for_each = lookup(container.value, "volume", {}) != {} ? [container.value.volume] : []
 
-      content {
-        name                 = volume.value.name
-        mount_path           = volume.value.mount_path
-        read_only            = volume.value.read_only
-        empty_dir            = volume.value.empty_dir
-        storage_account_name = volume.value.storage_account_name
-        storage_account_key  = volume.value.storage_account_key
-        share_name           = volume.value.share_name
-        secret               = volume.value.secret
+        content {
+          name                 = volume.value.name
+          mount_path           = volume.value.mount_path
+          read_only            = volume.value.read_only
+          empty_dir            = volume.value.empty_dir
+          storage_account_name = volume.value.storage_account_name
+          storage_account_key  = volume.value.storage_account_key
+          share_name           = volume.value.share_name
+          secret               = volume.value.secret
 
-        dynamic "git_repo" {
-          for_each = lookup(volume.value, "git_repo", {}) != {} ? [volume.value.git_repo] : []
+          dynamic "git_repo" {
+            for_each = lookup(volume.value, "git_repo", {}) != {} ? [volume.value.git_repo] : []
 
-          content {
-            url       = git_repo.value.url
-            directory = git_repo.value.directory
-            revision  = git_repo.value.revision
+            content {
+              url       = git_repo.value.url
+              directory = git_repo.value.directory
+              revision  = git_repo.value.revision
+            }
           }
         }
       }
     }
   }
-}
 
 
 
@@ -216,6 +216,32 @@ dynamic "container" {
               revision  = lookup(var.settings.init_container.volume.git_repo, "revision", null)
             }
           }
+        }
+      }
+    }
+  }
+}
+
+
+resource "azurerm_network_profile" "net_prof" {
+  count               = var.vnet_integration_enabled && var.use_legacy_network_profile == true && var.os_type == "Linux" ? 1 : 0
+  location            = var.location
+  name                = var.network_profile_name
+  resource_group_name = var.rg_name
+  tags                = var.tags
+
+  dynamic "container_network_interface" {
+    for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings, "container_network_interface", {}) != {} ? [1] : []
+
+    content {
+      name = lookup(var.settings.container_network_interface, "name", null)
+
+      dynamic "ip_configuration" {
+        for_each = var.vnet_integration_enabled == true && var.os_type == "Linux" && lookup(var.settings.container_network_interface, "ip_configuration", {}) != {} ? [1] : []
+
+        content {
+          name      = lookup(var.settings.container_network_interface.ip_configuration, "name", null)
+          subnet_id = lookup(var.settings.container_network_interface.ip_configuration, "subnet_id", null)
         }
       }
     }
