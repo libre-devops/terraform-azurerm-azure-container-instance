@@ -43,8 +43,8 @@ module "container_instance" {
       init_containers = [
         {
           name     = "seed"
-          image    = "busybox:1.36"
-          commands = ["sh", "-c", "echo seeded > /scratch/marker"]
+          image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+          commands = ["node", "-e", "require('fs').writeFileSync('/scratch/marker','seeded')"]
           volumes = [
             { name = "scratch", mount_path = "/scratch", empty_dir = true }
           ]
@@ -54,7 +54,7 @@ module "container_instance" {
       containers = [
         {
           name   = "nginx"
-          image  = "nginx:1.27-alpine"
+          image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
           cpu    = 0.5
           memory = 1.0
           ports  = [{ port = 80, protocol = "TCP" }]
@@ -67,10 +67,10 @@ module "container_instance" {
         },
         {
           name                         = "sidecar"
-          image                        = "busybox:1.36"
+          image                        = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
           cpu                          = 0.25
           memory                       = 0.5
-          commands                     = ["sh", "-c", "while true; do sleep 3600; done"]
+          commands                     = ["node", "-e", "setInterval(function () {}, 1000000000)"]
           secure_environment_variables = { WORKER_TOKEN = "example-not-a-real-secret" }
         }
       ]

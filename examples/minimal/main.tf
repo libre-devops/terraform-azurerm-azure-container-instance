@@ -38,7 +38,7 @@ module "container_instance" {
       containers = [
         {
           name   = "nginx"
-          image  = "nginx:1.27-alpine"
+          image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
           cpu    = 0.5
           memory = 1.0
           ports  = [{ port = 80, protocol = "TCP" }]
