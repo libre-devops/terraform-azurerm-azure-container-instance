@@ -1,98 +1,187 @@
-variable "container_instance_name" {
-  type        = string
-  description = "The name of the container instance"
-}
+variable "container_groups" {
+  description = <<-DESC
+    Azure container groups (container instances) keyed by name. Fast to get going: an entry with
+    an os_type and one container (name, image, cpu, memory) runs, with a public IP and a DNS
+    label. Flexible when it matters: multiple containers per group, init containers, probes,
+    volumes, private-registry credentials, identity, and VNet placement.
 
-variable "dns_name_label" {
-  type        = string
-  description = "The name of a DNS label if used"
-  default     = null
-}
+    NETWORKING: ip_address_type defaults to Public with a dns_name_label so the group gets a
+    stable FQDN; set ip_address_type = "Private" with subnet_ids for a VNet-integrated group (no
+    public IP), or "None" for no inbound. restart_policy defaults to Always.
 
-variable "identity_ids" {
-  description = "Specifies a list of user managed identity ids to be assigned to the VM."
-  type        = list(string)
-  default     = []
-}
+    SECRETS: use secure_environment_variables (not environment_variables) for anything sensitive,
+    and image_registry_credential to pull from a private registry (by username/password or a
+    user-assigned identity).
+  DESC
+  type = map(object({
+    os_type                     = optional(string, "Linux")
+    ip_address_type             = optional(string, "Public")
+    dns_name_label              = optional(string)
+    dns_name_label_reuse_policy = optional(string)
+    restart_policy              = optional(string, "Always")
+    sku                         = optional(string)
+    priority                    = optional(string)
+    subnet_ids                  = optional(list(string))
+    zones                       = optional(list(string))
 
-variable "identity_type" {
-  description = "The Managed Service Identity Type of this Virtual Machine."
-  type        = string
-  default     = ""
-}
+    key_vault_key_id                    = optional(string)
+    key_vault_user_assigned_identity_id = optional(string)
 
-variable "ip_address_type" {
-  type        = string
-  description = "What the ip address type is if used"
-  default     = null
-}
+    identity = optional(object({
+      type         = string
+      identity_ids = optional(list(string))
+    }))
 
-variable "key_vault_key_id" {
-  type        = string
-  description = "If a CMK is used, the key ID used to encrypt the instances"
-  default     = null
+    image_registry_credentials = optional(list(object({
+      server                    = string
+      username                  = optional(string)
+      password                  = optional(string)
+      user_assigned_identity_id = optional(string)
+    })), [])
+
+    dns_config = optional(object({
+      nameservers    = list(string)
+      search_domains = optional(list(string))
+      options        = optional(list(string))
+    }))
+
+    diagnostics_log_analytics = optional(object({
+      workspace_id  = string
+      workspace_key = string
+      log_type      = optional(string)
+      metadata      = optional(map(string))
+    }))
+
+    containers = list(object({
+      name                         = string
+      image                        = string
+      cpu                          = number
+      memory                       = number
+      cpu_limit                    = optional(number)
+      memory_limit                 = optional(number)
+      commands                     = optional(list(string))
+      environment_variables        = optional(map(string))
+      secure_environment_variables = optional(map(string))
+
+      ports = optional(list(object({
+        port     = number
+        protocol = optional(string, "TCP")
+      })), [])
+
+      liveness_probe = optional(object({
+        exec                  = optional(list(string))
+        initial_delay_seconds = optional(number)
+        period_seconds        = optional(number)
+        failure_threshold     = optional(number)
+        success_threshold     = optional(number)
+        timeout_seconds       = optional(number)
+        http_get = optional(object({
+          path         = optional(string)
+          port         = optional(number)
+          scheme       = optional(string)
+          http_headers = optional(map(string))
+        }))
+      }))
+
+      readiness_probe = optional(object({
+        exec                  = optional(list(string))
+        initial_delay_seconds = optional(number)
+        period_seconds        = optional(number)
+        failure_threshold     = optional(number)
+        success_threshold     = optional(number)
+        timeout_seconds       = optional(number)
+        http_get = optional(object({
+          path         = optional(string)
+          port         = optional(number)
+          scheme       = optional(string)
+          http_headers = optional(map(string))
+        }))
+      }))
+
+      security = optional(object({
+        privilege_enabled = bool
+      }))
+
+      volumes = optional(list(object({
+        name                 = string
+        mount_path           = string
+        read_only            = optional(bool)
+        empty_dir            = optional(bool)
+        share_name           = optional(string)
+        storage_account_name = optional(string)
+        storage_account_key  = optional(string)
+        secret               = optional(map(string))
+        git_repo = optional(object({
+          url       = string
+          directory = optional(string)
+          revision  = optional(string)
+        }))
+      })), [])
+    }))
+
+    init_containers = optional(list(object({
+      name                         = string
+      image                        = string
+      commands                     = optional(list(string))
+      environment_variables        = optional(map(string))
+      secure_environment_variables = optional(map(string))
+      security = optional(object({
+        privilege_enabled = bool
+      }))
+      volumes = optional(list(object({
+        name                 = string
+        mount_path           = string
+        read_only            = optional(bool)
+        empty_dir            = optional(bool)
+        share_name           = optional(string)
+        storage_account_name = optional(string)
+        storage_account_key  = optional(string)
+        secret               = optional(map(string))
+        git_repo = optional(object({
+          url       = string
+          directory = optional(string)
+          revision  = optional(string)
+        }))
+      })), [])
+    })), [])
+
+    tags = optional(map(string))
+  }))
+  default = {}
+
+  validation {
+    condition     = alltrue([for g in values(var.container_groups) : contains(["Linux", "Windows"], g.os_type)])
+    error_message = "os_type must be Linux or Windows."
+  }
+
+  validation {
+    condition     = alltrue([for g in values(var.container_groups) : contains(["Public", "Private", "None"], g.ip_address_type)])
+    error_message = "ip_address_type must be Public, Private, or None."
+  }
+
+  validation {
+    condition     = alltrue([for g in values(var.container_groups) : g.ip_address_type != "Private" || (g.subnet_ids != null && length(coalesce(g.subnet_ids, [])) > 0)])
+    error_message = "A Private container group requires subnet_ids."
+  }
+
+  validation {
+    condition     = alltrue([for g in values(var.container_groups) : length(g.containers) > 0])
+    error_message = "Each container group needs at least one container."
+  }
 }
 
 variable "location" {
-  description = "The location for this resource to be put in"
+  description = "Azure region for all container groups in this module."
   type        = string
 }
 
-variable "network_profile_name" {
+variable "resource_group_id" {
+  description = "Id of the resource group the container groups live in; the module parses the name from it."
   type        = string
-  description = "If a private network is used, the name of that network profile."
-  default     = null
-}
-
-variable "os_type" {
-  type        = string
-  description = "The OS type for the container instance"
-}
-
-variable "restart_policy" {
-  type        = string
-  description = "The restart policy of the container, defaults to Always"
-  default     = "Always"
-}
-
-variable "rg_name" {
-  description = "The name of the resource group, this module does not create a resource group, it is expecting the value of a resource group already exists"
-  type        = string
-  validation {
-    condition     = length(var.rg_name) > 1 && length(var.rg_name) <= 24
-    error_message = "Resource group name is not valid."
-  }
-}
-
-variable "settings" {
-  description = "Specifies the Authentication enabled or not"
-  default     = false
-  type        = any
-}
-
-variable "subnet_ids" {
-  description = "The subnets the container instance is connected to"
-  type        = list(string)
-  default     = []
 }
 
 variable "tags" {
+  description = "Tags applied to all container groups; per-group tags override these."
   type        = map(string)
-  description = "A map of the tags to use on the resources that are deployed with this module."
-
-  default = {
-    source = "terraform"
-  }
-}
-
-variable "use_legacy_network_profile" {
-  description = "Whether or not to use legacy network profile"
-  type        = bool
-  default     = false
-}
-
-variable "vnet_integration_enabled" {
-  type        = bool
-  description = "If vnet integration is enabled. can only be activated on a Linux container"
-  default     = null
+  default     = {}
 }

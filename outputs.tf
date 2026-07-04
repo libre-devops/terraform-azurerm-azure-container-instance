@@ -1,24 +1,34 @@
-output "aci_id" {
-  value       = azurerm_container_group.aci.id
-  description = "The id of the container instance"
+output "container_group_ids" {
+  description = "Map of group name to id."
+  value       = { for k, g in azurerm_container_group.this : k => g.id }
 }
 
-output "aci_name" {
-  value       = azurerm_container_group.aci.name
-  description = "The name of the Azure container instance"
+output "container_group_ids_zipmap" {
+  description = "Map of group name to { name, id } for easy composition."
+  value       = { for k, g in azurerm_container_group.this : k => { name = g.name, id = g.id } }
 }
 
-output "aci_network_profile_interface" {
-  value       = var.vnet_integration_enabled && var.use_legacy_network_profile == true && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.container_network_interface : null
-  description = "The interface block"
+output "container_groups" {
+  description = "Map of group name to the full container group object. Sensitive as a whole because it carries secure environment variables and volume secrets; the ids, IPs, and FQDNs alongside stay plain for composition."
+  value       = azurerm_container_group.this
+  sensitive   = true
 }
 
-output "aci_network_profile_interface_ids" {
-  value       = var.vnet_integration_enabled && var.use_legacy_network_profile == true && var.os_type == "Linux" ? azurerm_network_profile.net_prof.0.container_network_interface_ids : null
-  description = "The interface Ids"
+output "fqdns" {
+  description = "Map of group name to its fully qualified domain name (public groups with a dns_name_label)."
+  value       = { for k, g in azurerm_container_group.this : k => g.fqdn }
 }
 
-output "aci_principal_id" {
-  value       = azurerm_container_group.aci.identity[0].principal_id
-  description = "Client ID of system assigned managed identity if created"
+output "identity_principal_ids" {
+  description = "Map of group name to { system_assigned } principal id (null where absent)."
+  value = {
+    for k, g in azurerm_container_group.this : k => {
+      system_assigned = try(g.identity[0].principal_id, null)
+    }
+  }
+}
+
+output "ip_addresses" {
+  description = "Map of group name to its IP address."
+  value       = { for k, g in azurerm_container_group.this : k => g.ip_address }
 }
